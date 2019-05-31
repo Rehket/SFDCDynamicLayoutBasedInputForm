@@ -1,0 +1,31 @@
+<aura:component implements="flexipage:availableForAllPageTypes" controller="ObjectLayoutForm">
+    <aura:attribute name="objectApiName" type="String" />
+    <aura:attribute name="layoutName" type="String" />
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="default_values" type="Object" default='{"AccountId": "001E000001AThEe"}' />
+    <aura:registerEvent name="dataIsLoaded" type="c:DataLoaded" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="dataIsLoaded" event="c:DataLoaded" action="{!c.dataLoaded}" />
+
+    <aura:attribute name="layoutValues" type="List" />
+    <aura:attribute name="layoutItems" type="List" default="[]" />
+    <!-- The actual layout components them selves. -->
+
+    <lightning:card title="">
+        <lightning:layout>
+            <lightning:recordEditForm onload="" onsubmit="{!c.handleSubmit}" onsuccess="{!c.handleSuccess}"
+                recordId="{!v.recordId}" objectApiName="{!v.objectApiName}">
+                {!v.layoutItems}
+            </lightning:recordEditForm>
+        </lightning:layout>
+        <lightning:layout verticalAlign="center" class="x-large">
+            <lightning:layoutItem padding="around-large">
+                <div class="slds-m-top_medium">
+                    <lightning:button disabled="{!v.disabled}" variant="brand" type="submit" name="save" label="Save"
+                        onclick="{!c.handleSubmitEvent}" />
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </lightning:card>
+</aura:component>
