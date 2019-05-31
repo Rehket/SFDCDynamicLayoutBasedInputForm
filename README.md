@@ -7,7 +7,7 @@ The following markup should result is something like the image below.
 <c:AuraObjectLayoutForm objectApiName="Contact" layoutName="Contact (Support) Layout"/>
 ```
 
-![ExampleImage](docs\images\example_generated_form.PNG)
+![ExampleImage](docs/images/example_generated_form.png)
 
 ## Dev, Build and Test
 - Development is still in progress. The field validations still need to be fixed submission is not happening yet.
