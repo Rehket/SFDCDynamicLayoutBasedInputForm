@@ -1,30 +1,4 @@
-import { LightningElement, track } from 'lwc';
-import getPageLayoutFields from '@salesforce/apex/ObjectLayoutForm.getPageLayoutFields';
-
-
-/**
- * SOForm LWC
- * 
- * Uses the record layouts to create a form.
- */
-export default class SOForm extends LightningElement {
-
-    @track form_schema;
-
-     connectedCallback() {
-        let myComponent = this;
-        getPageLayoutFields({object_api_name: "Account",layout_name:"Account Layout" })
-        .then(function(data){
-            console.log("Layout Data", JSON.stringify(data, null, 2))
-            myComponent.form_schema = JSON.parse(JSON.stringify(data))
-        }).catch(function(err){
-            console.error(err)
-        })
-    }
-}
-
-/**
- * [
+[
     {
         "field_list": [
             {
@@ -302,4 +276,3 @@ export default class SOForm extends LightningElement {
         "totalColumns": 1
     }
 ]
- */

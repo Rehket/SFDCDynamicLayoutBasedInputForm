@@ -1,3 +1,14 @@
 <template>
-    
+  <div class="slds-grid">
+    <template if:true={form_schema}>
+      <template for:each={form_schema} for:item="section">
+        <div key={section.index}>
+          {section.label}, {section.totalColumns}
+          <template for:each={section.field_list} for:item="field">
+              <input key={field.field_name} type="text">
+          </template>
+        </div>
+      </template>
+    </template>
+  </div>
 </template>

@@ -4,30 +4,35 @@ public with sharing class ObjectLayoutForm {
     public class ObjectLayoutFormException extends Exception{}
     public ObjectLayoutForm() {}
     public class LayoutSection {   
+	    @AuraEnabled public Integer index;
 	    @AuraEnabled public String label;
-    	@AuraEnabled public List<LayoutField> lstFields;
+    	@AuraEnabled public List<LayoutField> field_list;
         @AuraEnabled public Integer totalColumns;
 
         public LayoutSection( String label, Integer totalColumns ) {
 	        this.label = label;
             this.totalColumns = totalColumns;
-            this.lstFields = new List<LayoutField>();
+            this.field_list = new List<LayoutField>();
         }
     }
     
     private class LayoutColumn {
-    	private List<LayoutField> lstFields;    
+    	private List<LayoutField> field_list;    
         public LayoutColumn() {
-            this.lstFields = new List<LayoutField>();
+            this.field_list = new List<LayoutField>();
         }
     }
     
     public class LayoutField {
         @AuraEnabled public String field_name;
-        @AuraEnabled public String fieldLabel;
-        @AuraEnabled public Boolean isRequired;
-        @AuraEnabled public Boolean isReadOnly;
-        @AuraEnabled public Boolean database_required;
+        @AuraEnabled public String field_type;
+        @AuraEnabled public String field_label;
+        @AuraEnabled public Boolean is_required;
+        @AuraEnabled public Boolean is_database_required;
+        @AuraEnabled public Boolean is_read_only;
+        @AuraEnabled public Map<String, String> options;
+        @AuraEnabled public Object default_value;
+
         
         public LayoutField() {}
         
@@ -36,14 +41,31 @@ public with sharing class ObjectLayoutForm {
             Schema.DescribeFieldResult field_describe =  field_schema.getDescribe();
             
             this.field_name = layout_item.field;
-            this.fieldLabel = field_describe.label;
-            this.database_required = field_describe.isNillable();
+            this.field_label = field_describe.label;
+            this.field_type = String.valueOf(field_describe.getType()).toLowerCase();
+            this.is_database_required = field_describe.isNillable();
+            this.default_value = field_describe.getDefaultValue();
             if( layout_item.behavior == Metadata.UiBehavior.Required ) {
-                this.isRequired = true;
+                this.is_required = true;
             }
             else if( layout_item.behavior == Metadata.UiBehavior.ReadOnly ) {
-                this.isReadOnly = true;
-            }    
+                this.is_read_only = true;
+            }
+            
+
+            switch on field_describe.getType() {
+                when PICKLIST {
+                    this.field_type = 'picklist';
+                    this.options = new Map<String, String>();
+                    List<Schema.PicklistEntry> ple = field_describe.getPicklistValues();
+                        
+                    for( Schema.PicklistEntry f : ple)
+                    {
+                        this.options.put(f.getLabel(), f.getValue());
+                    }       
+                }
+                when else {}
+            }
         }
     }
 
@@ -60,6 +82,9 @@ public with sharing class ObjectLayoutForm {
     }
 
     private static List<LayoutSection> internal_getPageLayoutFields(String object_api_name, String layout_name) {
+
+        //TODO: Make Sure Layout Exists!!!!!!
+        Integer section_index = 1;
 
         if (String.isBlank(object_api_name) || String.isBlank(layout_name))
             throw new ObjectLayoutFormException('object_api_name and layout_name cannot be blank.');
@@ -95,11 +120,11 @@ public with sharing class ObjectLayoutForm {
                         
                         // Pass the LayoutItem object in the LayoutField consturctor	  
                         if(String.isNotBlank(layout_item.field))  
-                            column.lstFields.add( new LayoutField( layout_item, field_map.get(layout_item.field)));
+                            column.field_list.add( new LayoutField( layout_item, field_map.get(layout_item.field)));
                     }
                 }
                 // No need to add a column in the section if there is no field available 
-                if( column.lstFields.size() > 0 ) {
+                if( column.field_list.size() > 0 ) {
                     column_list.add( column );
                 }
             }
@@ -109,19 +134,22 @@ public with sharing class ObjectLayoutForm {
             if( maxFieldsInColumn > 0 ) {
                 for( Integer i = 0; i < maxFieldsInColumn; i++ ) {
                     for( Integer j = 0; j < column_list.size(); j++ ){
-                        if( column_list[j].lstFields.size() > i ) {
-                            section.lstFields.add( column_list[j].lstFields[i] );    
+                        if( column_list[j].field_list.size() > i ) {
+                            section.field_list.add( column_list[j].field_list[i] );    
                         }    
                         // else {
-                        //     section.lstFields.add( new LayoutField() );
+                        //     section.field_list.add( new LayoutField() );
                         // }
                     }    
                 }    
             }
-            
-            section_list.add( section );
-        }
+            if (section.field_list.size() > 0){
+                section.index = section_index;
+                section_index ++;
+                section_list.add( section );
+            }
 
+        }
         return section_list;
     }
 }
