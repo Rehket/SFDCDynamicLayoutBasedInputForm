@@ -13,7 +13,8 @@ export default class SOForm extends LightningElement {
     @api is_read_only = false;
     @api recordId;
     @api objectApiName;
-    @track object_data;
+    
+    // TODO: If a record Id is available, retrieve the record data in the getPageLayoutFields method....
     connectedCallback() {
         let record_display_component = this;
         record_display_component.is_read_only = true
