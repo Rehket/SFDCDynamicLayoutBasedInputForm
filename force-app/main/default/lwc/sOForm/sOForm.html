@@ -1,14 +1,53 @@
 <template>
-  <div class="slds-grid">
-    <template if:true={form_schema}>
+  <template if:true={form_schema}>
+    <lightning-layout multiple-rows="true">
       <template for:each={form_schema} for:item="section">
-        <div key={section.index}>
-          {section.label}, {section.totalColumns}
-          <template for:each={section.field_list} for:item="field">
-              <input key={field.field_name} type="text">
-          </template>
-        </div>
+        <lightning-layout-item flexibility="auto, no-grow" key={form_schema.index} size="12">
+          <legend class="slds-form-element__legend slds-form-element__label">{form_schema.label}</legend>
+          <lightning-layout multiple-rows="true">
+            <template for:each={section.field_list} for:item="field">
+              <lightning-layout-item key={field.field_name} flexibility="auto, no-shrink" size={section.column_width}
+                padding="horizontal-small">
+
+                <template if:true={field.is_built_in}>
+                  <lightning-input label={field.field_label} name={field.field_name} disabled={field.is_read_only}
+                    type={field.field_type} class={section.css_class_name} style="width:100%"
+                    required={field.is_required}>
+                  </lightning-input>
+                </template>
+
+                <template if:true={field.is_combo_box}>
+                  <lightning-combobox label={field.field_label} options={field.options} disabled={field.is_read_only}
+                    required={field.is_required} placeholder={field.default_value}>
+                  </lightning-combobox>
+                </template>
+
+                <template if:true={field.is_address}>
+                  <lightning-input-address address-label={field.field_label} street-label="Street" city-label="City"
+                    country-label="Country" province-label="Province" postal-code-label="PostalCode"
+                    street="121 Spear St." city="San Francisco" country="US" province="CA" postal-code="94105"
+                    field-level-help="Help Text for inputAddress field" readonly={field.is_read_only}
+                    required={field.is_required}></lightning-input-address>
+
+                </template>
+
+                <template if:true={field.is_list_box}>
+
+                </template>
+
+                <template if:true={field.is_text_area}>
+                  <lightning-textarea name={field.field_name} label={field.field_label}
+                    placeholder={field.default_value} disabled={field.is_read_only} readonly={field.is_read_only}
+                    required={field.is_required}></lightning-textarea>
+                </template>
+
+
+
+              </lightning-layout-item>
+            </template>
+          </lightning-layout>
+        </lightning-layout-item>
       </template>
-    </template>
-  </div>
+    </lightning-layout>
+  </template>
 </template>

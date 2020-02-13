@@ -1,305 +1,36 @@
-import { LightningElement, track } from 'lwc';
+import { LightningElement, track, api } from 'lwc';
 import getPageLayoutFields from '@salesforce/apex/ObjectLayoutForm.getPageLayoutFields';
 
 
 /**
- * SOForm LWC
+ * Related Record Display LWC
  * 
- * Uses the record layouts to create a form.
+ * Uses the record layouts to create a readonly display for an object related to another object. 
  */
 export default class SOForm extends LightningElement {
 
     @track form_schema;
-
-     connectedCallback() {
-        let myComponent = this;
-        getPageLayoutFields({object_api_name: "Account",layout_name:"Account Layout" })
-        .then(function(data){
-            console.log("Layout Data", JSON.stringify(data, null, 2))
-            myComponent.form_schema = JSON.parse(JSON.stringify(data))
+    @api is_read_only = false;
+    @api recordId;
+    @api objectApiName;
+    @track object_data;
+    connectedCallback() {
+        let record_display_component = this;
+        record_display_component.is_read_only = true
+        getPageLayoutFields({object_api_name: "Account", layout_name:"Account Layout" }).then(function(data){
+            record_display_component.form_schema = data
+            console.log(JSON.stringify(data, null, 2))
         }).catch(function(err){
             console.error(err)
         })
     }
-}
 
-/**
- * [
-    {
-        "field_list": [
-            {
-                "field_label": "Owner ID",
-                "field_name": "OwnerId",
-                "field_type": "reference",
-                "is_database_required": false
-            },
-            {
-                "field_label": "Account Rating",
-                "field_name": "Rating",
-                "field_type": "picklist",
-                "is_database_required": true,
-                "options": {
-                    "Hot": "Hot",
-                    "Warm": "Warm",
-                    "Cold": "Cold"
-                }
-            },
-            {
-                "field_label": "Account Name",
-                "field_name": "Name",
-                "field_type": "string",
-                "is_database_required": false,
-                "is_required": true
-            },
-            {
-                "field_label": "Account Phone",
-                "field_name": "Phone",
-                "field_type": "phone",
-                "is_database_required": true
-            },
-            {
-                "field_label": "Parent Account ID",
-                "field_name": "ParentId",
-                "field_type": "reference",
-                "is_database_required": true
-            },
-            {
-                "field_label": "Account Fax",
-                "field_name": "Fax",
-                "field_type": "phone",
-                "is_database_required": true
-            },
-            {
-                "field_label": "Account Number",
-                "field_name": "AccountNumber",
-                "field_type": "string",
-                "is_database_required": true
-            },
-            {
-                "field_label": "Website",
-                "field_name": "Website",
-                "field_type": "url",
-                "is_database_required": true
-            },
-            {
-                "field_label": "Account Site",
-                "field_name": "Site",
-                "field_type": "string",
-                "is_database_required": true
-            },
-            {
-                "field_label": "Ticker Symbol",
-                "field_name": "TickerSymbol",
-                "field_type": "string",
-                "is_database_required": true
-            },
-            {
-                "field_label": "Account Type",
-                "field_name": "Type",
-                "field_type": "picklist",
-                "is_database_required": true,
-                "options": {
-                    "Prospect": "Prospect",
-                    "Customer - Direct": "Customer - Direct",
-                    "Customer - Channel": "Customer - Channel",
-                    "Channel Partner / Reseller": "Channel Partner / Reseller",
-                    "Installation Partner": "Installation Partner",
-                    "Technology Partner": "Technology Partner",
-                    "Other": "Other"
-                }
-            },
-            {
-                "field_label": "Ownership",
-                "field_name": "Ownership",
-                "field_type": "picklist",
-                "is_database_required": true,
-                "options": {
-                    "Public": "Public",
-                    "Private": "Private",
-                    "Subsidiary": "Subsidiary",
-                    "Other": "Other"
-                }
-            },
-            {
-                "default_value": "Technology",
-                "field_label": "Industry",
-                "field_name": "Industry",
-                "field_type": "picklist",
-                "is_database_required": true,
-                "options": {
-                    "Agriculture": "Agriculture",
-                    "Apparel": "Apparel",
-                    "Banking": "Banking",
-                    "Biotechnology": "Biotechnology",
-                    "Chemicals": "Chemicals",
-                    "Communications": "Communications",
-                    "Construction": "Construction",
-                    "Consulting": "Consulting",
-                    "Education": "Education",
-                    "Electronics": "Electronics",
-                    "Energy": "Energy",
-                    "Engineering": "Engineering",
-                    "Entertainment": "Entertainment",
-                    "Environmental": "Environmental",
-                    "Finance": "Finance",
-                    "Food & Beverage": "Food & Beverage",
-                    "Government": "Government",
-                    "Healthcare": "Healthcare",
-                    "Hospitality": "Hospitality",
-                    "Insurance": "Insurance",
-                    "Machinery": "Machinery",
-                    "Manufacturing": "Manufacturing",
-                    "Media": "Media",
-                    "Not For Profit": "Not For Profit",
-                    "Recreation": "Recreation",
-                    "Retail": "Retail",
-                    "Shipping": "Shipping",
-                    "Technology": "Technology",
-                    "Telecommunications": "Telecommunications",
-                    "Transportation": "Transportation",
-                    "Utilities": "Utilities",
-                    "Other": "Other"
-                }
-            },
-            {
-                "field_label": "Employees",
-                "field_name": "NumberOfEmployees",
-                "field_type": "integer",
-                "is_database_required": true
-            },
-            {
-                "field_label": "Annual Revenue",
-                "field_name": "AnnualRevenue",
-                "field_type": "currency",
-                "is_database_required": true
-            },
-            {
-                "field_label": "SIC Code",
-                "field_name": "Sic",
-                "field_type": "string",
-                "is_database_required": true
-            }
-        ],
-        "label": "Account Information",
-        "totalColumns": 2
-    },
-    {
-        "field_list": [
-            {
-                "field_label": "Billing Address",
-                "field_name": "BillingAddress",
-                "field_type": "address",
-                "is_database_required": true
-            },
-            {
-                "field_label": "Shipping Address",
-                "field_name": "ShippingAddress",
-                "field_type": "address",
-                "is_database_required": true
-            }
-        ],
-        "label": "Address Information",
-        "totalColumns": 2
-    },
-    {
-        "field_list": [
-            {
-                "field_label": "Customer Priority",
-                "field_name": "CustomerPriority__c",
-                "field_type": "picklist",
-                "is_database_required": true,
-                "options": {
-                    "High": "High",
-                    "Low": "Low",
-                    "Medium": "Medium"
-                }
-            },
-            {
-                "field_label": "SLA",
-                "field_name": "SLA__c",
-                "field_type": "picklist",
-                "is_database_required": true,
-                "options": {
-                    "Gold": "Gold",
-                    "Silver": "Silver",
-                    "Platinum": "Platinum",
-                    "Bronze": "Bronze"
-                }
-            },
-            {
-                "field_label": "SLA Expiration Date",
-                "field_name": "SLAExpirationDate__c",
-                "field_type": "date",
-                "is_database_required": true
-            },
-            {
-                "field_label": "SLA Serial Number",
-                "field_name": "SLASerialNumber__c",
-                "field_type": "string",
-                "is_database_required": true
-            },
-            {
-                "field_label": "Number of Locations",
-                "field_name": "NumberofLocations__c",
-                "field_type": "double",
-                "is_database_required": true
-            },
-            {
-                "field_label": "Upsell Opportunity",
-                "field_name": "UpsellOpportunity__c",
-                "field_type": "picklist",
-                "is_database_required": true,
-                "options": {
-                    "Maybe": "Maybe",
-                    "No": "No",
-                    "Yes": "Yes"
-                }
-            },
-            {
-                "field_label": "Active",
-                "field_name": "Active__c",
-                "field_type": "picklist",
-                "is_database_required": true,
-                "options": {
-                    "No": "No",
-                    "Yes": "Yes"
-                }
-            }
-        ],
-        "label": "Additional Information",
-        "totalColumns": 2
-    },
-    {
-        "field_list": [
-            {
-                "field_label": "Created By ID",
-                "field_name": "CreatedById",
-                "field_type": "reference",
-                "is_database_required": false,
-                "is_read_only": true
-            },
-            {
-                "field_label": "Last Modified By ID",
-                "field_name": "LastModifiedById",
-                "field_type": "reference",
-                "is_database_required": false,
-                "is_read_only": true
-            }
-        ],
-        "label": "System Information",
-        "totalColumns": 2
-    },
-    {
-        "field_list": [
-            {
-                "field_label": "Account Description",
-                "field_name": "Description",
-                "field_type": "textarea",
-                "is_database_required": true
-            }
-        ],
-        "label": "Description Information",
-        "totalColumns": 1
+    isReadOnly(field){
+        if (this.is_read_only)
+            return true
+
+        return field.is_read_only
     }
-]
- */
+
+
+}

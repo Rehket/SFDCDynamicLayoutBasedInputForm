@@ -1,21 +1,28 @@
 public with sharing class ObjectLayoutForm {
-    Map<String, Schema.SObjectType> global_describe = Schema.getGlobalDescribe(); 
 
+    Map<String, Schema.SObjectType> global_describe = Schema.getGlobalDescribe(); 
     public class ObjectLayoutFormException extends Exception{}
     public ObjectLayoutForm() {}
+
+
     public class LayoutSection {   
 	    @AuraEnabled public Integer index;
 	    @AuraEnabled public String label;
     	@AuraEnabled public List<LayoutField> field_list;
-        @AuraEnabled public Integer totalColumns;
+        @AuraEnabled public Integer total_columns;
+        @AuraEnabled public Integer column_width;
+        @AuraEnabled public String css_class_name;
 
-        public LayoutSection( String label, Integer totalColumns ) {
+        public LayoutSection( String label, Integer total_columns ) {
 	        this.label = label;
-            this.totalColumns = totalColumns;
+            this.total_columns = total_columns;
             this.field_list = new List<LayoutField>();
+            this.column_width = 12 / total_columns;
+            this.css_class_name = 'slds-size--' + this.column_width + '-of-12';
         }
     }
     
+
     private class LayoutColumn {
     	private List<LayoutField> field_list;    
         public LayoutColumn() {
@@ -30,8 +37,15 @@ public with sharing class ObjectLayoutForm {
         @AuraEnabled public Boolean is_required;
         @AuraEnabled public Boolean is_database_required;
         @AuraEnabled public Boolean is_read_only;
-        @AuraEnabled public Map<String, String> options;
+        @AuraEnabled public List<Map<String, String>> options;
         @AuraEnabled public Object default_value;
+        @AuraEnabled public String formatter;
+        @AuraEnabled public String pattern;
+        @AuraEnabled public Boolean is_built_in = true;
+        @AuraEnabled public Boolean is_list_box;
+        @AuraEnabled public Boolean is_combo_box;
+        @AuraEnabled public Boolean is_text_area;
+        @AuraEnabled public Boolean is_address;
 
         
         public LayoutField() {}
@@ -45,31 +59,96 @@ public with sharing class ObjectLayoutForm {
             this.field_type = String.valueOf(field_describe.getType()).toLowerCase();
             this.is_database_required = field_describe.isNillable();
             this.default_value = field_describe.getDefaultValue();
-            if( layout_item.behavior == Metadata.UiBehavior.Required ) {
+            if( layout_item.behavior == Metadata.UiBehavior.Required || this.is_database_required) {
                 this.is_required = true;
             }
             else if( layout_item.behavior == Metadata.UiBehavior.ReadOnly ) {
                 this.is_read_only = true;
             }
-            
 
             switch on field_describe.getType() {
                 when PICKLIST {
-                    this.field_type = 'picklist';
-                    this.options = new Map<String, String>();
+                    this.field_type = 'combo-box';
+                    this.is_combo_box = true;
+                    this.is_built_in = false;
+                    this.options = new List<Map<String, String>>();
                     List<Schema.PicklistEntry> ple = field_describe.getPicklistValues();
-                        
                     for( Schema.PicklistEntry f : ple)
                     {
-                        this.options.put(f.getLabel(), f.getValue());
+                        this.options.add(new Map<String, String>{'label'=> f.getLabel(), 'value'=> f.getValue()});
+                    }     
+                }
+                when MULTIPICKLIST {
+                    this.field_type = 'dual-listbox';
+                    this.is_list_box = true;
+                    this.is_built_in = false;
+                    this.options = new List<Map<String, String>>();
+                    List<Schema.PicklistEntry> ple = field_describe.getPicklistValues();
+                    for( Schema.PicklistEntry f : ple)
+                    {   
+                        this.options.add(new Map<String, String>{'label'=> f.getLabel(), 'value'=> f.getValue()});
                     }       
                 }
-                when else {}
+                when TEXTAREA {
+                    this.field_type = 'text-area';
+                    this.is_text_area = true;
+                    this.is_built_in = false;
+                }
+                when ADDRESS {
+                    this.field_type = 'address';
+                    this.is_address = true;
+                    this.is_built_in = false;
+                }
+                when STRING {
+                    this.field_type = 'text';
+                }
+                when BOOLEAN {
+                    this.field_type = 'checkbox';
+                }
+                when PERCENT {
+                    this.field_type = 'number';
+                    this.formatter = 'percent';
+                }
+                when PHONE {
+                    this.field_type = 'tel';
+                    this.pattern = '[0-9]{3}-[0-9]{3}-[0-9]{4}';
+                }
+                when INTEGER {
+                    this.field_type = 'number';
+                }
+                when DOUBLE {
+                    this.field_type = 'number';
+                }
+                when LONG {
+                    this.field_type = 'number';
+                }
+                when ID {
+                    this.field_type = 'text';
+                }
+                when CURRENCY {
+                    this.field_type = 'number';
+                    this.field_type = 'currency';
+                }
+                when DATE {
+                    this.field_type = 'date';
+                }
+                when DATETIME {
+                    this.field_type = 'datetime';
+                }
+                when EMAIL {
+                    this.field_type = 'email';
+                }
+                when TIME {
+                    this.field_type = 'time';
+                }
+                when else {
+                    this.field_type = 'text';
+                }
             }
         }
     }
 
-    @AuraEnabled()
+    @AuraEnabled(cacheable=true)
     public static List<LayoutSection> getPageLayoutFields(String object_api_name, String layout_name){
         try{
             return internal_getPageLayoutFields(object_api_name, layout_name);
@@ -106,15 +185,15 @@ public with sharing class ObjectLayoutForm {
             LayoutSection section = new LayoutSection( layout_section.label, layout_section.layoutColumns.size() );
                     
             List<LayoutColumn> column_list = new List<LayoutColumn>();
-            Integer maxFieldsInColumn = 0;
+            Integer max_fields_in_column = 0;
             for( Metadata.LayoutColumn layout_column : layout_section.layoutColumns ) {
                 
                 LayoutColumn column = new LayoutColumn();
                 // check if there are fields available in that column
                 if( layout_column.layoutItems != null ) { 
                     // Get the max number of fields in a column to preserve the alignment 
-                    if( maxFieldsInColumn < layout_column.layoutItems.size() ) {
-                        maxFieldsInColumn = layout_column.layoutItems.size();
+                    if( max_fields_in_column < layout_column.layoutItems.size() ) {
+                        max_fields_in_column = layout_column.layoutItems.size();
                     }
                     for( Metadata.LayoutItem layout_item : layout_column.layoutItems ) {
                         
@@ -131,8 +210,8 @@ public with sharing class ObjectLayoutForm {
             
             // Now, we need to arrange the fields in section so we can use them in the iteration 
             // on the component so we will have to arrange them in the order 
-            if( maxFieldsInColumn > 0 ) {
-                for( Integer i = 0; i < maxFieldsInColumn; i++ ) {
+            if( max_fields_in_column > 0 ) {
+                for( Integer i = 0; i < max_fields_in_column; i++ ) {
                     for( Integer j = 0; j < column_list.size(); j++ ){
                         if( column_list[j].field_list.size() > i ) {
                             section.field_list.add( column_list[j].field_list[i] );    
