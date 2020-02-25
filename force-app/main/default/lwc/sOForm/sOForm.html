@@ -1,7 +1,7 @@
 <template>
   <template if:true={form_schema}>
     <lightning-layout multiple-rows="true">
-      <template for:each={form_schema} for:item="section">
+      <template for:each={form_schema.sections} for:item="section">
         <lightning-layout-item flexibility="auto, no-grow" key={form_schema.index} size="12">
           <legend class="slds-form-element__legend slds-form-element__label">{form_schema.label}</legend>
           <lightning-layout multiple-rows="true">
@@ -40,9 +40,6 @@
                     placeholder={field.default_value} disabled={field.is_read_only} readonly={field.is_read_only}
                     required={field.is_required}></lightning-textarea>
                 </template>
-
-
-
               </lightning-layout-item>
             </template>
           </lightning-layout>
