@@ -11,3 +11,8 @@ Can be added with the lightning page builder on record pages.
 - Apex Tests still need to be added.
 
 ## Issues
+
+## TODO:
+- Fix Tests
+- Clean it up...
+- Add some validations and usefull error messages. 
