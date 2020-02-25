@@ -1,5 +1,5 @@
 import { LightningElement, track, api } from "lwc";
-import getPageLayoutFields from "@salesforce/apex/ObjectLayoutForm.getPageLayoutFields";
+import get_page_layout_with_data from "@salesforce/apex/ObjectLayoutForm.get_page_layout_with_data";
 
 /**
  * Related Record Display LWC
@@ -15,10 +15,9 @@ export default class SOForm extends LightningElement {
   // TODO: If a record Id is available, retrieve the record data in the getPageLayoutFields method....
   connectedCallback() {
     let record_display_component = this;
-    getPageLayoutFields({
-      object_api_name: "Account",
-      layout_name: "Account Layout",
-      recordId: this.recordId
+    get_page_layout_with_data({
+      layout_name: "Case Layout",
+      record_id: '5003l00000wjhzPAAQ'
     })
       .then(function(data) {
         record_display_component.form_schema = data;

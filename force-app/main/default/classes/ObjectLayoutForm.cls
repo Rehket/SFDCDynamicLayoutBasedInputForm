@@ -15,6 +15,18 @@ public with sharing class ObjectLayoutForm {
                     if(object_data.keySet().contains(field.field_name))
                         field.data = object_data.get(field.field_name);
         }
+
+        public List<String> get_field_name_set(){
+            if(sections.isEmpty())
+                throw new ObjectLayoutFormException('Layout empty or not initialized. No fields found.');
+            Set<String> my_fields = new Set<String>();
+
+            for(LayoutSection section: this.sections)
+                for(LayoutField field:  section.field_list)
+                    my_fields.add(field.field_name);
+            return new List<String>(my_fields);
+        }
+
     }
 
     public class LayoutSection {   
@@ -75,10 +87,12 @@ public with sharing class ObjectLayoutForm {
             if( layout_item.behavior == Metadata.UiBehavior.Required || this.is_database_required) {
                 this.is_required = true;
             }
-            else if( layout_item.behavior == Metadata.UiBehavior.ReadOnly ) {
-                this.is_read_only = true;
-            }
-
+            // Forcing it to be just readonly atm. 
+            // if( layout_item.behavior == Metadata.UiBehavior.ReadOnly ) {
+            //     this.is_read_only = true;
+            // }
+            this.is_read_only = true;
+            
             switch on field_describe.getType() {
                 when PICKLIST {
                     this.field_type = 'combo-box';
@@ -166,7 +180,7 @@ public with sharing class ObjectLayoutForm {
     }
 
     @AuraEnabled(cacheable=true)
-    public static Layout getPageLayoutFields(String object_api_name, String layout_name){
+    public static Layout get_page_layout(String object_api_name, String layout_name){
         try{
             
             String layout_cache_key = 'Layout' + object_api_name.remove('_') + layout_name.remove(' ');
@@ -175,7 +189,7 @@ public with sharing class ObjectLayoutForm {
             
             System.debug('Cache_Miss: ' + layout_cache_key);
             Layout my_layout = new Layout();
-            my_layout.sections = internal_getPageLayoutFields(object_api_name, layout_name);
+            my_layout.sections = get_layout_sections(object_api_name, layout_name);
             Cache.Org.put(layout_cache_key, my_layout);
 
             return my_layout;
@@ -187,7 +201,41 @@ public with sharing class ObjectLayoutForm {
         }
     }
 
-    private static List<LayoutSection> internal_getPageLayoutFields(String object_api_name, String layout_name) {
+    /**************************************************************
+    * From the object id and layout, get the layout information with record data.
+    * @param  layout_name The name of the target layout.
+    * @param  record_id The record id of the parent object. 
+    * @throws AuraHandledException When there is no data available to display or another exception occurs. The Component using the data should catch the error and 
+    * tailor the message to the contents of the exception. 
+    * @return Returns the schama information and object data to be rendered.
+    * @author Adam Albright, @Rehket - github
+    * @since 2020-02-21
+    */
+    @AuraEnabled
+    public static Layout get_page_layout_with_data(String layout_name, Id record_id){
+
+        if (String.isBlank(layout_name))
+            throw new ObjectLayoutFormException('layout_name paramater is null or blank. A layout_name name must be supplied to generate the form.');
+        if (String.isBlank(record_id))
+            throw new ObjectLayoutFormException('record_id paramater is null or blank. A record_id name must be supplied to generate the form.');
+
+        String object_api_name = find_object_name_from_record_id_prefix(record_id);
+
+        Layout my_layout = get_page_layout(object_api_name, layout_name);
+        String query_fields = String.join(my_layout.get_field_name_set(), ',');
+        try{
+            SObject data = Database.query('SELECT ' + query_fields + ' FROM ' + object_api_name + ' LIMIT 1');
+            my_layout.update_data_values(data);
+            return my_layout;
+        } catch (Exception e) {
+            System.debug(LoggingLevel.ERROR, e);
+            throw new AuraHandledException('An error occured while trying to display the form');
+        }
+
+
+    }
+
+    private static List<LayoutSection> get_layout_sections(String object_api_name, String layout_name) {
 
         // TODO: Make Sure Layout Exists!!!!!!
         // TODO: Check Object Cache for the data....
@@ -258,42 +306,6 @@ public with sharing class ObjectLayoutForm {
         }
         return section_list;
     }
-
-
-    /**************************************************************
-    * Give the SObject API name of the parent object, get the Schema Information, Layout-Data, and data of the child object to be rendered.
-    *
-    * @param  object_api_name The parant object api name
-    * @param  layout_name The name of the target layout.
-    * @param  recordId The record id of the parent object. 
-    * @param  relate_id_field The filed on the parent object referencing the target object. 
-    * @throws AuraHandledException When there is no data available to display or another exception occurs. The Component using the data should catch the error and 
-    * tailor the message to the contents of the exception. 
-    * @return Returns the sheama information and object data to be rendered.
-    * @author Adam Albright, @Rehket - github
-    * @since 2020-02-21
-    */
-    @AuraEnabled()
-    public static List<LayoutSection> getPageLayoutFieldsWithData(String object_api_name, String layout_name, String recordId, String relate_id_field){
-        
-        Schema.DescribeSObjectResult parent_object_schema = Schema.getGlobalDescribe().get(object_api_name).getDescribe();
-        Schema.SObjectField related_record_field = parent_object_schema.fields.getMap().get(relate_id_field);
-        
-
-
-
-        try{
-
-            return internal_getPageLayoutFields(object_api_name, layout_name);
-        } catch (ObjectLayoutFormException e){
-            throw new AuraHandledException(e.getMessage());
-        } catch (Exception e){
-            System.debug(LoggingLevel.ERROR, e + String.valueOf(e.getLineNumber()));
-            throw new AuraHandledException('Looks like the page broke. We will get right on that!');
-        }
-    }
-
-
 
 
     public static String find_object_name_from_record_id_prefix(String record_id_or_prefix){

@@ -12,33 +12,38 @@
                 <template if:true={field.is_built_in}>
                   <lightning-input label={field.field_label} name={field.field_name} disabled={field.is_read_only}
                     type={field.field_type} class={section.css_class_name} style="width:100%"
-                    required={field.is_required}>
+                    required={field.is_required} value={field.data}>
                   </lightning-input>
                 </template>
 
                 <template if:true={field.is_combo_box}>
                   <lightning-combobox label={field.field_label} options={field.options} disabled={field.is_read_only}
-                    required={field.is_required} placeholder={field.default_value}>
+                    required={field.is_required} placeholder={field.default_value} value={field.data}>
                   </lightning-combobox>
                 </template>
 
                 <template if:true={field.is_address}>
                   <lightning-input-address address-label={field.field_label} street-label="Street" city-label="City"
                     country-label="Country" province-label="Province" postal-code-label="PostalCode"
-                    street="121 Spear St." city="San Francisco" country="US" province="CA" postal-code="94105"
-                    field-level-help="Help Text for inputAddress field" readonly={field.is_read_only}
+                    field-level-help="Help Text for inputAddress field" readonly={field.is_read_only} value={field.data}
                     required={field.is_required}></lightning-input-address>
 
                 </template>
 
                 <template if:true={field.is_list_box}>
-
+                  <lightning-dual-listbox name="languages"
+                            label={field.field_label}
+                            source-label="Available"
+                            selected-label="Selected"
+                            field-level-help="Selection"
+                            options={field.options} 
+                            ></lightning-dual-listbox>
                 </template>
 
                 <template if:true={field.is_text_area}>
                   <lightning-textarea name={field.field_name} label={field.field_label}
                     placeholder={field.default_value} disabled={field.is_read_only} readonly={field.is_read_only}
-                    required={field.is_required}></lightning-textarea>
+                    required={field.is_required} value={field.data}></lightning-textarea>
                 </template>
               </lightning-layout-item>
             </template>
