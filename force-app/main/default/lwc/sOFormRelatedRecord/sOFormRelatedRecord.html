@@ -1,0 +1,11 @@
+<template>
+    <template if:true={relateRecordId}>
+        <lightning-card label={layoutName} title={layoutTitle} aria-label={layoutName}>
+            <c-s-o-form target-record-id={relateRecordId}  record-layout={layoutName} ></c-s-o-form>
+        </lightning-card>
+        
+    </template>
+    <template if:false={isFormValid}>
+        Not Valid
+    </template>
+</template>

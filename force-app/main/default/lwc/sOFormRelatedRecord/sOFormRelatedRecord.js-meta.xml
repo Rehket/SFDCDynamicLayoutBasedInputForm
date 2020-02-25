@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+  <apiVersion>48.0</apiVersion>
+  <isExposed>true</isExposed>
+  <targets>
+    <target>lightning__RecordPage</target>
+  </targets>
+  <targetConfigs>
+    <targetConfig targets="lightning__RecordPage">
+      <property name="objectApiName" type="String" label="Object Name" description="Automatically bind the page's object name to the component variable" default="Account" />
+      <property name="recordId" type="String" label="Record Id" description="Automatically bind the page's record id to the component variable" default="Id" />
+      <property name="layoutName" type="String" label="Layout Name" placeholder="Layout Name" description="Enter the name of the layout you want to use to render the data." default="Layout"/>
+      <property name="layoutTitle" type="String" label="Layout Title" placeholder="Title" description="Enter the title for the section where the data will be displayed." default="Title"/>
+      <property name="relateRecordFieldName" type="String" label="Related Record Field Name" description="Enter the api name of the related record field." />
+    </targetConfig>
+  </targetConfigs>
+</LightningComponentBundle>

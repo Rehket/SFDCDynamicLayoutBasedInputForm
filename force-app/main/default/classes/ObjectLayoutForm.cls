@@ -82,8 +82,9 @@ public with sharing class ObjectLayoutForm {
             this.field_name = layout_item.field;
             this.field_label = field_describe.label;
             this.field_type = String.valueOf(field_describe.getType()).toLowerCase();
-            this.is_database_required = field_describe.isNillable();
+            this.is_database_required = !field_describe.isNillable();
             this.default_value = field_describe.getDefaultValue();
+            System.debug(LoggingLevel.INFO, layout_item);
             if( layout_item.behavior == Metadata.UiBehavior.Required || this.is_database_required) {
                 this.is_required = true;
             }
@@ -177,6 +178,28 @@ public with sharing class ObjectLayoutForm {
         public void update_value(Object data){
             this.data = data;
         }
+    }
+
+    @AuraEnabled
+    public static Id get_referenced_id(String sobject_api_name, String referenced_field_name, Id record_id){
+
+        try{
+
+            if (String.isBlank(sobject_api_name))
+                throw new ObjectLayoutFormException('sobject_api_name paramater is null or blank. A sobject_api_name must be supplied to generate the form.');
+            if (String.isBlank(record_id))
+                throw new ObjectLayoutFormException('record_id paramater is null or blank. A record_id name must be supplied to generate the form.');
+            if (String.isBlank(referenced_field_name))
+                throw new ObjectLayoutFormException('referenced_field_name paramater is null or blank. A referenced_field_name must be supplied to generate the form.');
+    
+            String query = 'SELECT ' + referenced_field_name + ' FROM ' + sobject_api_name + ' WHERE Id =\'' + record_id + '\' LIMIT 1';
+            SObject my_object = Database.query(query);
+            return (Id)my_object.get(referenced_field_name);
+        } catch(Exception e){
+            System.debug(LoggingLevel.ERROR, e + String.valueOf(e.getLineNumber()));
+            throw new AuraHandledException('Uh oh! Something broke while retrieveing the related record id!');
+        }
+        
     }
 
     @AuraEnabled(cacheable=true)

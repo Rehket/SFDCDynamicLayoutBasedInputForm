@@ -4,6 +4,12 @@
         "paths": {
             "c/sOForm": [
                 "sOForm/sOForm.js"
+            ],
+            "c/sOFormRelatedRecord": [
+                "sOFormRelatedRecord/sOFormRelatedRecord.js"
+            ],
+            "c/wireGetObjectInfo": [
+                "wireGetObjectInfo/wireGetObjectInfo.js"
             ]
         },
         "experimentalDecorators": true
