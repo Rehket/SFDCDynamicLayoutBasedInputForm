@@ -1,11 +1,8 @@
 # Build SObject Form based on Page Layout
 
-A input form based on the page layout of the object. 
+Pretty much a related Record Display based on page layouts.
 
-The following markup should result is something like the image below.
-```html
-<c:AuraObjectLayoutForm objectApiName="Contact" layoutName="Contact (Support) Layout"/>
-```
+Can be added with the lightning page builder on record pages. 
 
 ![ExampleImage](https://github.com/Rehket/SFDCLayoutBasedInputForm/blob/master/docs/example_generated_form.png?raw=true)
 
