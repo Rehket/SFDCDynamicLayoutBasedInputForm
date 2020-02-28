@@ -1,4 +1,7 @@
 <template>
+  <template if:false={error}>
+    <h2>{error_text}</h2>
+  </template>
   <template if:true={form_schema}>
     <lightning-layout multiple-rows="true">
       <template for:each={form_schema.sections} for:item="section">
@@ -31,13 +34,9 @@
                 </template>
 
                 <template if:true={field.is_list_box}>
-                  <lightning-dual-listbox name="languages"
-                            label={field.field_label}
-                            source-label="Available"
-                            selected-label="Selected"
-                            field-level-help="Selection"
-                            options={field.options} 
-                            ></lightning-dual-listbox>
+                  <lightning-dual-listbox name="languages" label={field.field_label} source-label="Available"
+                    selected-label="Selected" field-level-help="Selection" options={field.options}>
+                  </lightning-dual-listbox>
                 </template>
 
                 <template if:true={field.is_text_area}>

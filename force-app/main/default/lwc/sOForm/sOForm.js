@@ -13,6 +13,8 @@ export default class SOForm extends LightningElement {
   @api objectApiName
   @api related_field
   @api recordLayout
+  @track error = false
+  @track error_message
 
   // TODO: If a record Id is available, retrieve the record data in the getPageLayoutFields method....
   connectedCallback() {
@@ -27,7 +29,9 @@ export default class SOForm extends LightningElement {
         console.log(JSON.stringify(record_display_component.form_schema, null, 2))
       })
       .catch(function(err) {
-        console.error(err)
+        record_display_component.error = true
+        record_display_component.error_message = err.body.message
+        console.error(JSON.stringify(err))
       });
     }
 }
